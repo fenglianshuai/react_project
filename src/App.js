@@ -1,15 +1,18 @@
 import React, { Component } from 'react'
 import { Route, Switch, Redirect } from 'react-router-dom'
-import { adminRouter } from './routers'
+import { adminRoutes } from './routers'
+import {
+    Frame
+} from './components'
 
+const menus = adminRoutes.filter(item => item.isNav === true);
 class App extends Component {
     render() {
         return (
-            <div>
-                <div>这是公共部分</div>
+            <Frame menus={menus}>
                 <Switch>
                     {
-                        adminRouter.map(route => {
+                        adminRoutes.map(route => {
                             return <Route
                                 key={route.pathname}
                                 path={route.pathname}
@@ -19,10 +22,10 @@ class App extends Component {
                                 }} />
                         })
                     }
-                    <Redirect to={adminRouter[0].pathname} from="/admin" exact />
+                    <Redirect to={adminRoutes[0].pathname} from="/admin" exact />
                     <Redirect to='/404' />
                 </Switch>
-            </div>
+            </Frame>
         )
     }
 }
