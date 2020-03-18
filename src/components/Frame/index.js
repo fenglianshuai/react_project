@@ -26,7 +26,6 @@ class Frame extends Component {
                         <Menu
                             mode="inline"
                             selectedKeys={[this.props.location.pathname]}
-                            defaultOpenKeys={['1']}
                             style={{ height: '100%', borderRight: 0 }}
                             onClick={this.onMenuClick}
                         >
