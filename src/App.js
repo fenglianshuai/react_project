@@ -1,32 +1,30 @@
-import React, { component, Component } from 'react'
-import {
-    Button
-} from "antd"
+import React, { Component } from 'react'
+import { Route, Switch, Redirect } from 'react-router-dom'
+import { adminRouter } from './routers'
 
-const testHOC = (WrappedComponent) => {
-    return class HOCComponent extends Component {
-        render() {
-            return (
-                <>
-                    <WrappedComponent></WrappedComponent>
-                    <div>这是高阶组件的信息</div>
-                </>
-            )
-        }
-    }
-}
-// 配置装饰器之后的写法
-@testHOC
 class App extends Component {
     render() {
         return (
             <div>
-                <Button type="primary">按钮</Button>
+                <div>这是公共部分</div>
+                <Switch>
+                    {
+                        adminRouter.map(route => {
+                            return <Route
+                                key={route.pathname}
+                                path={route.pathname}
+                                exact={route.exact}
+                                render={(routerProps) => {
+                                    return <route.component {...routerProps} />
+                                }} />
+                        })
+                    }
+                    <Redirect to={adminRouter[0].pathname} from="/admin" exact />
+                    <Redirect to='/404' />
+                </Switch>
             </div>
         )
     }
 }
 
 export default App;
-// 未安装装饰器的写法
-// export default testHOC(App)
