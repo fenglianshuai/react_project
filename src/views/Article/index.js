@@ -1,63 +1,75 @@
 import React, { Component } from 'react'
-
 import {
     Card,
     Button,
-    Table
+    Table,
+    Tag
 } from 'antd'
-
+import moment from 'moment'
 import { getArticles } from '../../requests'
-
+window.moment = moment
+const displayTitle = {
+    id: 'id',
+    title: '标题',
+    author: '作者',
+    amount: '阅读量',
+    createAt: '创建时间'
+}
 export default class ArticleList extends Component {
-    state = {
-        dataSource: [
-            {
-                key: '1',
-                name: '胡彦斌',
-                age: 32,
-                address: '西湖区湖底公园1号',
-            },
-            {
-                key: '2',
-                name: '胡彦祖',
-                age: 42,
-                address: '西湖区湖底公园1号',
-            },
-        ],
+    constructor() {
+        super()
+        this.state = {
+            dataSource: [],
 
-        columns: [
-            {
-                title: '姓名',
-                dataIndex: 'name',
-                key: 'name',
-            },
-            {
-                title: '年龄',
-                dataIndex: 'age',
-                key: 'age',
-            },
-            {
-                title: '住址',
-                dataIndex: 'address',
-                key: 'address',
-            },
-            {
-                title: '操作',
-                dataIndex: 'actions',
-                key: 'actions',
-                render: (text, record, index) => {
-                    console.log({ text, record, index })
-                    return (
-                        <Button>编辑</Button>
-                    )
+            columns: [],
+            total: 0
+        }
+    }
+
+    createColumns = (columnsKys) => {
+        return columnsKys.map(item => {
+            if (item === 'amount') {
+                return {
+                    title: displayTitle[item],
+                    key: item,
+                    render: (text, record, index) => {
+                        const { amount } = record;
+                        // 这是通过数字大小进行判断渲染，同理可以做职级别不同的颜色
+                        return <Tag color={amount > 200 ? 'red' : 'cyan'}>{amount}</Tag>
+                    }
                 }
-            },
-        ],
+            } else if (item === 'createAt') {
+                return {
+                    title: displayTitle[item],
+                    key: item,
+                    render: (text, record, index) => {
+                        const { createAt } = record;
+                        return moment(createAt).format('YYYY年 MM月 DD日 hh:mm:ss')
+                    }
+                }
+            }
+            return {
+                title: displayTitle[item],
+                dataIndex: item,
+                key: item
+            }
+        })
+    }
+
+    getData = () => {
+        getArticles().then(resp => {
+            const columns = this.createColumns(Object.keys(resp.list[0]));
+            this.setState({
+                total: resp.total,
+                columns,
+                dataSource: resp.list
+            })
+        }).catch(err => {
+            console.log(err)
+        })
     }
     componentDidMount() {
-        getArticles().then(resp => {
-            console.log(resp)
-        })
+        this.getData()
     }
     render() {
         return (
@@ -67,11 +79,13 @@ export default class ArticleList extends Component {
                     extra={<Button type="primary">导出Excel</Button>}
                 >
                     <Table
+                        rowKey={record => record.id}
                         dataSource={this.state.dataSource}
                         columns={this.state.columns}
-                    // pagination={{
-                    //     pageSize: 10
-                    // }}
+                        pagination={{
+                            total: this.state.total,
+                            hideOnSinglePage: true
+                        }}
                     />
                 </Card>
             </div>
