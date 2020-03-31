@@ -22,12 +22,14 @@ export default class ArticleList extends Component {
             dataSource: [],
             columns: [],
             total: 0,
-            isLoading: false
+            isLoading: false,
+            offset: 0,
+            limited: 10
         }
     }
 
     createColumns = (columnsKys) => {
-        const columns =  columnsKys.map(item => {
+        const columns = columnsKys.map(item => {
             if (item === 'amount') {
                 return {
                     title: displayTitle[item],
@@ -59,9 +61,9 @@ export default class ArticleList extends Component {
             key: 'action',
             render: () => {
                 return <>
-                        <Button type="dashed">编辑</Button>
-                        <Button type="link" danger>删除</Button>
-                    </>
+                    <Button type="dashed">编辑</Button>
+                    <Button type="link" danger>删除</Button>
+                </>
             }
         })
         return columns;
@@ -71,7 +73,7 @@ export default class ArticleList extends Component {
         this.setState({
             isLoading: true
         })
-        getArticles().then(resp => {
+        getArticles(this.state.offset, this.state.limited).then(resp => {
             const columns = this.createColumns(Object.keys(resp.list[0]));
             this.setState({
                 total: resp.total,
@@ -90,6 +92,25 @@ export default class ArticleList extends Component {
     componentDidMount() {
         this.getData()
     }
+    // 切换分页
+    onPageChange = (page, pageSize) => {
+        this.setState({
+            offset: (page - 1) * pageSize,
+            limited: pageSize
+        }, () => {
+            this.getData();
+        })
+    }
+    // 切换每页多少条数据
+    onShowSizeChange = (current, size) => {
+        // 这里出去要和产品经理沟通,究竟是回到第一页,还是留到当前页.
+        this.setState({
+            offset: 0,
+            limited: size
+        }, () => {
+            this.getData();
+        })
+    }
     render() {
         return (
             <div>
@@ -105,7 +126,13 @@ export default class ArticleList extends Component {
                         loading={this.state.isLoading}
                         pagination={{
                             total: this.state.total,
-                            hideOnSinglePage: true
+                            hideOnSinglePage: true,
+                            showQuickJumper: true,
+                            showSizeChanger: true,
+                            // current: this.state.offset / this.state.limited + 1, // 页码切换每页的条数,页码没有回到第一页使用这个方法解决
+                            pageSizeOptions: ['10', '15', '20', '25', '30'],
+                            onChange: this.onPageChange,
+                            onShowSizeChange: this.onShowSizeChange
                         }}
                     />
                 </Card>
