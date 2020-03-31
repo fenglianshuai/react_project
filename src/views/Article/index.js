@@ -20,14 +20,14 @@ export default class ArticleList extends Component {
         super()
         this.state = {
             dataSource: [],
-
             columns: [],
-            total: 0
+            total: 0,
+            isLoading: false
         }
     }
 
     createColumns = (columnsKys) => {
-        return columnsKys.map(item => {
+        const columns =  columnsKys.map(item => {
             if (item === 'amount') {
                 return {
                     title: displayTitle[item],
@@ -54,9 +54,23 @@ export default class ArticleList extends Component {
                 key: item
             }
         })
+        columns.push({
+            title: '操作',
+            key: 'action',
+            render: () => {
+                return <>
+                        <Button type="dashed">编辑</Button>
+                        <Button type="link" danger>删除</Button>
+                    </>
+            }
+        })
+        return columns;
     }
 
     getData = () => {
+        this.setState({
+            isLoading: true
+        })
         getArticles().then(resp => {
             const columns = this.createColumns(Object.keys(resp.list[0]));
             this.setState({
@@ -65,7 +79,12 @@ export default class ArticleList extends Component {
                 dataSource: resp.list
             })
         }).catch(err => {
+            // 错误处理
             console.log(err)
+        }).finally(() => {
+            this.setState({
+                isLoading: false
+            })
         })
     }
     componentDidMount() {
@@ -79,9 +98,11 @@ export default class ArticleList extends Component {
                     extra={<Button type="primary">导出Excel</Button>}
                 >
                     <Table
+                        // record表示每条数据对象
                         rowKey={record => record.id}
                         dataSource={this.state.dataSource}
                         columns={this.state.columns}
+                        loading={this.state.isLoading}
                         pagination={{
                             total: this.state.total,
                             hideOnSinglePage: true
