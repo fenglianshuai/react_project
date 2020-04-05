@@ -5,6 +5,7 @@ import {
     Table,
     Tag
 } from 'antd'
+import XLSX from 'xlsx'
 import moment from 'moment'
 import { getArticles } from '../../requests'
 window.moment = moment
@@ -111,12 +112,34 @@ export default class ArticleList extends Component {
             this.getData();
         })
     }
+    toExcel = () => {
+        // 在实际的项目中是前端发送一个ajax到后端，后端返回一个文件下载地址
+        // 组合数据
+        // const data = [Object.keys(this.state.dataSource[0])]; 是无序的不太好
+        const data = [['id', 'title', 'author', 'amount', 'createAt']];
+        this.state.dataSource.forEach((item, index) => {
+            data.push([
+                item.id,
+                item.title,
+                item.author,
+                item.amount,
+                moment(item.createAt).format('YYY年MM月DD日 HH:mm:ss')
+            ])
+        });
+
+        // 前端导出excel
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "SheetJS");
+
+        XLSX.writeFile(wb, "表格文件.xlsx")
+    }
     render() {
         return (
             <div>
                 <Card
                     title="文章列表"
-                    extra={<Button type="primary">导出Excel</Button>}
+                    extra={<Button type="primary" onClick={this.toExcel}>导出Excel</Button>}
                 >
                     <Table
                         // record表示每条数据对象
